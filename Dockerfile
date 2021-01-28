@@ -1,5 +1,5 @@
 # set base image (host OS)
-FROM nvidia/cuda:11.1-cudnn8-devel-ubuntu18.04 as base
+FROM nvidia/cuda:11.1-cudnn8-devel-ubuntu18.04 AS base
 LABEL maintainer="Shubham Turai <shubham.turai@robotic-eyes.com>"
 
 RUN apt-get update
@@ -24,9 +24,9 @@ RUN pip3 install tqdm
 
 FROM base as debug
 RUN pip3 install debugpy
-# WORKDIR /home/src
-# CMD python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client test.py --gpu_idx 0 --pretrained_path /home/checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile /home/src/config/cfg/complex_yolov4.cfg --working_dir /home
-# CMD python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client test.py --gpu_idx 0 --pretrained_path /home/checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile /home/src/config/cfg/complex_yolov4.cfg --working_dir /home --show_image
+WORKDIR /home
+CMD ["./start-debug.sh"]
 
+FROM base as prod
 WORKDIR /home
 CMD ["./start.sh"]
