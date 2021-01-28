@@ -42,6 +42,8 @@ def parse_test_configs():
                         help='the path of the pretrained checkpoint')
     parser.add_argument('--use_giou_loss', action='store_true',
                         help='If true, use GIoU loss during training. If false, use MSE loss for training')
+    parser.add_argument('--working_dir', type=str, default="..", metavar='PATH',
+                        help='the path of the root directory')
 
     parser.add_argument('--no_cuda', action='store_true',
                         help='If true, cuda is not used.')
@@ -77,7 +79,7 @@ def parse_test_configs():
     ####################################################################
     ##############Dataset, Checkpoints, and results dir configs#########
     ####################################################################
-    configs.working_dir = '../'
+    # configs.working_dir = '../'
     configs.dataset_dir = os.path.join(configs.working_dir, 'dataset', 'kitti')
 
     if configs.save_test_output:
@@ -95,15 +97,16 @@ if __name__ == '__main__':
     model.print_network()
     print('\n\n' + '-*=' * 30 + '\n\n')
     assert os.path.isfile(configs.pretrained_path), "No file at {}".format(configs.pretrained_path)
-    model.load_state_dict(torch.load(configs.pretrained_path))
+    deviceInfo = 'cpu' if configs.no_cuda else 'cuda:{}'.format(configs.gpu_idx)
+    model.load_state_dict(torch.load(configs.pretrained_path, map_location=deviceInfo))
 
-    configs.device = torch.device('cpu' if configs.no_cuda else 'cuda:{}'.format(configs.gpu_idx))
+    configs.device = torch.device(deviceInfo)
     model = model.to(device=configs.device)
 
     out_cap = None
 
     model.eval()
-
+    
     test_dataloader = create_test_dataloader(configs)
     with torch.no_grad():
         for batch_idx, (img_paths, imgs_bev) in enumerate(test_dataloader):
@@ -112,7 +115,7 @@ if __name__ == '__main__':
             outputs = model(input_imgs)
             t2 = time_synchronized()
             detections = post_processing_v2(outputs, conf_thresh=configs.conf_thresh, nms_thresh=configs.nms_thresh)
-
+            
             img_detections = []  # Stores detections for each image index
             img_detections.extend(detections)
 
