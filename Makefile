@@ -1,7 +1,7 @@
 all: build
 
 build:
-	docker build --tag complex-yolov4:latest -f Dockerfile .
+	docker build --tag complex-yolov4:latest --target prod -f Dockerfile .
 
 debug-build:
 	docker build --tag complex-yolov4:latest --target debug -f Dockerfile .
