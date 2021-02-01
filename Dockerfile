@@ -20,10 +20,12 @@ RUN pip3 install scikit-learn==0.22.2
 RUN pip3 install mayavi
 RUN pip3 install shapely
 RUN pip3 install tqdm
+RUN pip3 install matplotlib
 
 
 FROM base as debug
 RUN pip3 install debugpy
+RUN apt-get install -y xauth x11-apps
 WORKDIR /home
 CMD ["./start-debug.sh"]
 

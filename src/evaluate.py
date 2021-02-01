@@ -119,9 +119,10 @@ if __name__ == '__main__':
     # model.print_network()
     print('\n\n' + '-*=' * 30 + '\n\n')
     assert os.path.isfile(configs.pretrained_path), "No file at {}".format(configs.pretrained_path)
-    model.load_state_dict(torch.load(configs.pretrained_path))
+    deviceInfo = 'cpu' if configs.no_cuda else 'cuda:{}'.format(configs.gpu_idx)
+    model.load_state_dict(torch.load(configs.pretrained_path, map_location=deviceInfo))
 
-    configs.device = torch.device('cpu' if configs.no_cuda else 'cuda:{}'.format(configs.gpu_idx))
+    configs.device = torch.device(deviceInfo)
     model = model.to(device=configs.device)
 
     model.eval()
