@@ -132,3 +132,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Car dataset
+./auto
+# velodyne bin's
+./velodyne
+# Interpreter
+./complexYolo
