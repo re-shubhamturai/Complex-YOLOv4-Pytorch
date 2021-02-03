@@ -134,8 +134,8 @@ dmypy.json
 .pyre/
 
 # Car dataset
-auto
+auto/
 # velodyne bin's
-velodyne
+velodyne/
 # Interpreter
-complexYolo
+complexYolo/
