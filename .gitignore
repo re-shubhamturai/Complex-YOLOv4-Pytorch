@@ -134,8 +134,11 @@ dmypy.json
 .pyre/
 
 # Car dataset
-auto/
+prepareipaddata/auto/
 # velodyne bin's
-velodyne/
+prepareipaddata/velodyne/
 # Interpreter
-complexYolo/
+prepareipaddata/complexYolo/
+prepareipaddata/.idea
+prepareipaddata/.vscode
+prepareipaddata/__pycache__
