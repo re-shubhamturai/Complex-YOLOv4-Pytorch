@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 import numpy as np
 import cv2
+
 from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib
@@ -53,7 +54,8 @@ class IpadDataset(Dataset):
         return self.load_img_with_targets(index)
 
     def append_depth_ptcl(self):
-        return np.c_[self.ptcl, 1/self.depth]
+        depthValuesNorm = np.interp(self.depth, (self.depth.min(), self.depth.max()), (0.0, 1.0))
+        return np.c_[self.ptcl, depthValuesNorm]
 
     def load_img_with_targets(self, index):
         sample_id = int(self.sample_id_list[index])
@@ -87,8 +89,8 @@ class IpadDataset(Dataset):
         PointCloud_frac = PointCloud[indices]
 
         max_height = float(np.abs(BOUNDARY['maxZ'] - BOUNDARY['minZ']))
-        breakpoint()
-        heightMap[np.int_(PointCloud_frac[:, 0]), np.int_(PointCloud_frac[:, 1])] = PointCloud_frac[:, 2] / max_height
+        # breakpoint()
+        heightMap[np.int_(PointCloud_frac[:, 0]), np.int_(PointCloud_frac[:, 1])] = np.abs(PointCloud_frac[:, 2]) / max_height
 
         _, indices, counts = np.unique(PointCloud[:, 0:2], axis=0, return_index=True, return_counts=True)
         PointCloud_top = PointCloud[indices]
@@ -98,24 +100,10 @@ class IpadDataset(Dataset):
         intensityMap[np.int_(PointCloud_top[:, 0]), np.int_(PointCloud_top[:, 1])] = PointCloud_top[:, 3]
         densityMap[np.int_(PointCloud_top[:, 0]), np.int_(PointCloud_top[:, 1])] = normalizedCounts
         
-        # plt.subplot(1, 3, 1)
-        # plt.imshow(densityMap)
-        # # plt.show()
-        # plt.subplot(1, 3, 2)
-        # plt.imshow(heightMap)
-        # plt.show()
-        # plt.subplot(1, 3, 3)
-        # plt.imshow(intensityMap)
-        # plt.show()
-        matplotlib.image.imsave("densityMap.png", densityMap)
-        matplotlib.image.imsave("heightMap.png", heightMap)
-        matplotlib.image.imsave("intensityMap.png", intensityMap)
-        # densityMap_ = Image.fromarray(densityMap)
-        # densityMap_.save("densityMap_.png")
-        # heightMap_ = Image.fromarray(heightMap)
-        # heightMap_.save("height.png")
-        # intensityMap_ = Image.fromarray(intensityMap)
-        # intensityMap_.save("intensityMap_.png")
+        # Inspect Maps
+        # matplotlib.image.imsave("densityMap.png", densityMap)
+        # matplotlib.image.imsave("heightMap.png", heightMap)
+        # matplotlib.image.imsave("intensityMap.png", intensityMap)
 
         RGB_Map = np.zeros((3, Height - 1, Width - 1))
         RGB_Map[2, :, :] = densityMap[:BEV_HEIGHT, :BEV_WIDTH]  # r_map

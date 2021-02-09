@@ -12,6 +12,7 @@ import argparse
 import sys
 import os
 import time
+from data_process.ObjReadWriter import ObjReadWriter
 
 from easydict import EasyDict as edict
 import cv2
@@ -22,7 +23,7 @@ sys.path.append('../')
 
 import config.kitti_config as cnf
 from data_process import kitti_data_utils, kitti_bev_utils
-from data_process.kitti_dataloader import create_test_dataloader
+from data_process.ipad_dataloader import create_ipad_dataloader
 from models.model_utils import create_model
 from utils.misc import make_folder
 from utils.evaluation_utils import post_processing, rescale_boxes, post_processing_v2
@@ -109,10 +110,27 @@ if __name__ == '__main__':
     out_cap = None
 
     model.eval()
+    FILECONFIG = {
+    "mesh": "mesh.obj",
+    "texture": "texture.png",
+    "depth": "depth.txt",
+    "outputMesh": "outputMesh.obj",
+    "outputDepth": "outputDepth.txt"
+    }
+    scanPath = os.path.join("/home/dataset/kitti/testing", "auto3")
+    objRW = ObjReadWriter(os.path.join(scanPath, FILECONFIG["depth"]),
+                          os.path.join(scanPath, FILECONFIG["mesh"]),
+                          os.path.join(scanPath, FILECONFIG["outputMesh"]),
+                          os.path.join(scanPath, FILECONFIG["outputDepth"]))
+    depthValues = objRW.getDepthValues()
+    ptcl, pixCoordinates, translation_table = objRW.getMeshData()
+    # imageColor = cv2.imread(os.path.join(scanPath, FILECONFIG["texture"]))
+    imgPath = os.path.join(scanPath, FILECONFIG["texture"])                      
+    # test_dataloader = create_test_dataloader(configs)
+    ipad_dataloader = create_ipad_dataloader(ptcl, pixCoordinates, imgPath, translation_table, depthValues)
     breakpoint()
-    test_dataloader = create_test_dataloader(configs)
     with torch.no_grad():
-        for batch_idx, (img_paths, imgs_bev) in enumerate(test_dataloader):
+        for batch_idx, (img_paths, imgs_bev) in enumerate(ipad_dataloader):
             input_imgs = imgs_bev.to(device=configs.device).float()
             t1 = time_synchronized()
             outputs = model(input_imgs)
@@ -125,7 +143,7 @@ if __name__ == '__main__':
             img_bev = imgs_bev.squeeze() * 255
             img_bev = img_bev.permute(1, 2, 0).numpy().astype(np.uint8)
             img_bev = cv2.resize(img_bev, (configs.img_size, configs.img_size))
-            breakpoint()
+            # cv2.imwrite(img_bev)
             for detections in img_detections:
                 if detections is None:
                     continue
@@ -136,7 +154,6 @@ if __name__ == '__main__':
                     # Draw rotated box
                     kitti_bev_utils.drawRotatedBox(img_bev, x, y, w, l, yaw, cnf.colors[int(cls_pred)])
 
-            # Inspect birdEyeView image 
             matplotlib.image.imsave("img_bev.png", img_bev)
             
             img_rgb = cv2.imread(img_paths[0])

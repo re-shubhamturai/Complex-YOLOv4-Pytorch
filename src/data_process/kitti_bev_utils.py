@@ -10,6 +10,11 @@ import sys
 import cv2
 import numpy as np
 
+# kill this
+from PIL import Image
+import matplotlib.pyplot as plt
+import matplotlib
+
 sys.path.append('../')
 
 import config.kitti_config as cnf
@@ -48,6 +53,7 @@ def makeBVFeature(PointCloud_, Discretization, bc):
     PointCloud = PointCloud[indices]
 
     # Height Map
+    breakpoint()
     heightMap = np.zeros((Height, Width))
 
     _, indices = np.unique(PointCloud[:, 0:2], axis=0, return_index=True)
@@ -67,6 +73,11 @@ def makeBVFeature(PointCloud_, Discretization, bc):
 
     intensityMap[np.int_(PointCloud_top[:, 0]), np.int_(PointCloud_top[:, 1])] = PointCloud_top[:, 3]
     densityMap[np.int_(PointCloud_top[:, 0]), np.int_(PointCloud_top[:, 1])] = normalizedCounts
+
+    # Kill This 
+    matplotlib.image.imsave("densityMap.png", densityMap)
+    matplotlib.image.imsave("heightMap.png", heightMap)
+    matplotlib.image.imsave("intensityMap.png", intensityMap)
 
     RGB_Map = np.zeros((3, Height - 1, Width - 1))
     RGB_Map[2, :, :] = densityMap[:cnf.BEV_HEIGHT, :cnf.BEV_WIDTH]  # r_map

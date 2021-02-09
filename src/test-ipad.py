@@ -30,6 +30,9 @@ from utils.evaluation_utils import post_processing, rescale_boxes, post_processi
 from utils.misc import time_synchronized
 from utils.visualization_utils import show_image_with_boxes, merge_rgb_to_bev, predictions_to_kitti_format
 
+from PIL import Image
+import matplotlib.pyplot as plt
+import matplotlib
 
 def parse_test_configs():
     parser = argparse.ArgumentParser(description='Demonstration config for Complex YOLO Implementation')
@@ -125,7 +128,7 @@ if __name__ == '__main__':
     imgPath = os.path.join(scanPath, FILECONFIG["texture"])                      
     # test_dataloader = create_test_dataloader(configs)
     ipad_dataloader = create_ipad_dataloader(ptcl, pixCoordinates, imgPath, translation_table, depthValues)
-    breakpoint()
+
     with torch.no_grad():
         for batch_idx, (img_paths, imgs_bev) in enumerate(ipad_dataloader):
             input_imgs = imgs_bev.to(device=configs.device).float()
@@ -140,7 +143,7 @@ if __name__ == '__main__':
             img_bev = imgs_bev.squeeze() * 255
             img_bev = img_bev.permute(1, 2, 0).numpy().astype(np.uint8)
             img_bev = cv2.resize(img_bev, (configs.img_size, configs.img_size))
-            # cv2.imwrite(img_bev)
+            
             for detections in img_detections:
                 if detections is None:
                     continue
@@ -151,6 +154,8 @@ if __name__ == '__main__':
                     # Draw rotated box
                     kitti_bev_utils.drawRotatedBox(img_bev, x, y, w, l, yaw, cnf.colors[int(cls_pred)])
 
+            matplotlib.image.imsave("img_bev.png", img_bev)
+            
             img_rgb = cv2.imread(img_paths[0])
             calib = kitti_data_utils.Calibration(img_paths[0].replace(".png", ".txt").replace("image_2", "calib"))
             objects_pred = predictions_to_kitti_format(img_detections, calib, img_rgb.shape, configs.img_size)
